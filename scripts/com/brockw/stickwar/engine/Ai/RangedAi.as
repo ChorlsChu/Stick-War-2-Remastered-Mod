@@ -10,16 +10,28 @@ package com.brockw.stickwar.engine.Ai
       
       public var mayKite:Boolean;
       
+      private var _kitingDirection:int;
+      
       public function RangedAi(s:RangedUnit)
       {
          super();
          unit = s;
          this.mayKite = false;
+         this._kitingDirection = 0;
       }
       
       override public function update(game:StickWar) : void
       {
          var walkX:Number = NaN;
+         if(this._kitingDirection != 0)
+         {
+            if(!(RangedUnit(unit).isLoaded() || !this.mayKite))
+            {
+               unit.walk(this._kitingDirection,0,this._kitingDirection);
+               return;
+            }
+            this._kitingDirection = 0;
+         }
          if(!this.mayKite && currentTarget != null && currentTarget.isAlive() && RangedUnit(unit).inRange(currentTarget))
          {
             currentTarget = currentTarget;
@@ -45,9 +57,22 @@ package com.brockw.stickwar.engine.Ai
          else if(mayMoveToAttack && currentTarget != null && unit.sqrDistanceTo(currentTarget) < 150000 && !unit.isGarrisoned)
          {
             walkX = currentTarget.px - unit.px - 100 * unit.team.direction;
-            if(this.mayKite && Math.abs(currentTarget.px - unit.px) < 350 && !RangedUnit(unit).isLoaded())
+            if(this.mayKite && !RangedUnit(unit).isLoaded())
             {
-               unit.walk(Util.sgn(unit.px - currentTarget.px),0,Util.sgn(unit.px - currentTarget.px));
+               if(Math.abs(currentTarget.px - unit.px) < 350)
+               {
+                  this._kitingDirection = Util.sgn(unit.px - currentTarget.px);
+                  unit.walk(this._kitingDirection,0,this._kitingDirection);
+               }
+               else if(RangedUnit(unit).inRange(currentTarget) || Util.sgn(walkX) != Util.sgn(currentTarget.px - unit.px))
+               {
+                  walkX = 0;
+                  unit.faceDirection(Util.sgn(currentTarget.px - unit.px));
+               }
+               else
+               {
+                  unit.walk(walkX / 100,(goalY - unit.py) / 100,Util.sgn(currentTarget.px - unit.px));
+               }
             }
             else if(RangedUnit(unit).inRange(currentTarget) || Util.sgn(walkX) != Util.sgn(currentTarget.px - unit.px))
             {
@@ -70,4 +95,3 @@ package com.brockw.stickwar.engine.Ai
       }
    }
 }
-

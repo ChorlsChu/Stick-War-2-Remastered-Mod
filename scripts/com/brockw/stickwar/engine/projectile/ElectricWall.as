@@ -13,6 +13,8 @@ package com.brockw.stickwar.engine.projectile
       
       private var frequency:Number;
       
+      private var childClips:Array;
+      
       public function ElectricWall(game:StickWar)
       {
          var mc:DisplayObject = null;
@@ -20,13 +22,17 @@ package com.brockw.stickwar.engine.projectile
          type = ELECTRIC_WALL;
          this.spellMc = new electricWallMc();
          this.addChild(this.spellMc);
-         for(var i:* = 0; i < this.spellMc.numChildren; i++)
+         this.childClips = [];
+         var i:* = 0;
+         while(i < this.spellMc.numChildren)
          {
             mc = this.spellMc.getChildAt(i);
             if(mc is MovieClip)
             {
                MovieClip(mc).gotoAndStop(Math.floor(game.random.nextNumber() * MovieClip(mc).totalFrames));
+               this.childClips.push(mc);
             }
+            i++;
          }
          this.wallArea = game.xml.xml.Order.Units.magikill.electricWall.area;
          this.frequency = game.xml.xml.Order.Units.magikill.electricWall.frequency;
@@ -37,24 +43,24 @@ package com.brockw.stickwar.engine.projectile
          super.cleanUp();
          removeChild(this.spellMc);
          this.spellMc = null;
+         this.childClips = null;
       }
       
       override public function update(game:StickWar) : void
       {
-         var mc:DisplayObject = null;
+         var mc:MovieClip = null;
          this.visible = true;
          this.spellMc.nextFrame();
-         for(var i:* = 0; i < this.spellMc.numChildren; i++)
+         var i:* = 0;
+         while(i < this.childClips.length)
          {
-            mc = this.spellMc.getChildAt(i);
-            if(mc is MovieClip)
+            mc = this.childClips[i];
+            mc.nextFrame();
+            if(mc.currentFrame == mc.totalFrames)
             {
-               MovieClip(mc).nextFrame();
-               if(MovieClip(mc).currentFrame == MovieClip(mc).totalFrames)
-               {
-                  MovieClip(mc).gotoAndStop(1);
-               }
+               mc.gotoAndStop(1);
             }
+            i++;
          }
          if(game.frame % this.frequency == 0)
          {
@@ -88,4 +94,3 @@ package com.brockw.stickwar.engine.projectile
       }
    }
 }
-

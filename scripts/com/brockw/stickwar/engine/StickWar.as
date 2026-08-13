@@ -103,6 +103,8 @@ package com.brockw.stickwar.engine
       
       private var _militaryRecords:Array;
       
+      private var wallHitPoint:Point;
+      
       public var pausedGameMc:gamePausedDisplay;
       
       private var _showGameOverAnimation:Boolean;
@@ -171,6 +173,7 @@ package com.brockw.stickwar.engine
          ++main.loadingFraction;
          this.units = new Dictionary();
          this.targetScreenX = this._screenX = 0;
+         this.wallHitPoint = new Point();
          this._map = Map.getMapFromId(mapId,this);
          ++main.loadingFraction;
          if(this._cursorSprite == null)
@@ -192,6 +195,8 @@ package com.brockw.stickwar.engine
          this._battlefield = new Sprite();
          this._battlefield.x = 0;
          this._battlefield.y = this._map.y;
+         this._battlefield.mouseEnabled = false;
+         this._battlefield.mouseChildren = false;
          ++main.loadingFraction;
          this.shadowClip = new Shadows(this._map);
          this.shadowClip.x = 0;
@@ -207,6 +212,13 @@ package com.brockw.stickwar.engine
             this._bloodManager = new BloodManager();
          }
          this._bloodManager.y = this.battlefield.y;
+         this._bloodManager.mouseEnabled = false;
+         this._bloodManager.mouseChildren = false;
+         if(this._background != null)
+         {
+            this._background.mouseEnabled = false;
+            this._background.mouseChildren = false;
+         }
          addChild(this._bloodManager);
          addChild(this._battlefield);
          addChild(this._rain);
@@ -242,6 +254,8 @@ package com.brockw.stickwar.engine
       override public function postInit() : void
       {
          this.fogOfWar = new FogOfWar(this);
+         this.fogOfWar.mouseEnabled = false;
+         this.fogOfWar.mouseChildren = false;
          addChild(this.fogOfWar);
          this.fogOfWar.isFogOn = this.xml.xml.isFogOfWar == 1;
       }
@@ -351,26 +365,21 @@ package com.brockw.stickwar.engine
       public function updateVisibilityOfUnits() : void
       {
          var unit:String = null;
+         var isVisible:Boolean = false;
          for(unit in this.teamA.units)
          {
-            if(Entity(this.teamA.units[unit]).onScreen(this))
+            isVisible = Boolean(this.teamA.units[unit].onScreen(this));
+            if(this.teamA.units[unit].visible != isVisible)
             {
-               this.teamA.units[unit].visible = true;
-            }
-            else
-            {
-               this.teamA.units[unit].visible = false;
+               this.teamA.units[unit].visible = isVisible;
             }
          }
          for(unit in this.teamB.units)
          {
-            if(Entity(this.teamB.units[unit]).onScreen(this))
+            isVisible = Boolean(this.teamB.units[unit].onScreen(this));
+            if(this.teamB.units[unit].visible != isVisible)
             {
-               this.teamB.units[unit].visible = true;
-            }
-            else
-            {
-               this.teamB.units[unit].visible = false;
+               this.teamB.units[unit].visible = isVisible;
             }
          }
       }
@@ -381,6 +390,10 @@ package com.brockw.stickwar.engine
          var unit:String = null;
          var gold:String = null;
          var wall:Wall = null;
+         var unitObj:Unit = null;
+         var mouseX:Number = Number(NaN);
+         var mouseY:Number = Number(NaN);
+         var isVisible:Boolean = false;
          this.teamA.updateStatue();
          this.teamB.updateStatue();
          if(this.showGameOverAnimation)
@@ -420,61 +433,67 @@ package com.brockw.stickwar.engine
          this._spatialHash.clear();
          this._spatialHash.add(this.teamA.statue);
          this._spatialHash.add(this.teamB.statue);
+         mouseX = stage.mouseX;
+         mouseY = stage.mouseY;
+         this.wallHitPoint.x = mouseX;
+         this.wallHitPoint.y = mouseY;
          this.team.enemyTeam.statue.mouseIsOver = false;
-         if(this.team.enemyTeam.statue.hitTestPoint(stage.mouseX,stage.mouseY,true) && this.determineIfBetterSelection(this.team.enemyTeam.statue))
+         if(this.team.enemyTeam.statue.hitTestPoint(mouseX,mouseY,true) && this.determineIfBetterSelection(this.team.enemyTeam.statue))
          {
             this.mouseOverUnit = this.team.enemyTeam.statue;
          }
          for(unit in this.teamA.units)
          {
-            if(Unit(this.teamA.units[unit]).isTargetable())
+            unitObj = this.teamA.units[unit];
+            if(unitObj.isTargetable())
             {
-               this._spatialHash.add(this.teamA.units[unit]);
+               this._spatialHash.add(unitObj);
             }
-            if(Entity(this.teamA.units[unit]).onScreen(this))
+            isVisible = unitObj.onScreen(this);
+            if(unitObj.visible != isVisible)
             {
-               this.teamA.units[unit].visible = true;
-               this.teamA.units[unit].mouseIsOver = false;
-               if(Boolean(this.teamA.units[unit].mc.mc.hitTestPoint(stage.mouseX,stage.mouseY,false)))
+               unitObj.visible = isVisible;
+            }
+            if(isVisible)
+            {
+               unitObj.mouseIsOver = false;
+               if(Boolean(unitObj.mc.mc.hitTestPoint(mouseX,mouseY,false)))
                {
-                  if(this.determineIfBetterSelection(this.teamA.units[unit]))
+                  if(this.determineIfBetterSelection(unitObj))
                   {
-                     this.mouseOverUnit = this.teamA.units[unit];
+                     this.mouseOverUnit = unitObj;
                   }
                }
-            }
-            else
-            {
-               this.teamA.units[unit].visible = false;
             }
          }
          for(unit in this.teamB.units)
          {
-            if(Unit(this.teamB.units[unit]).isTargetable())
+            unitObj = this.teamB.units[unit];
+            if(unitObj.isTargetable())
             {
-               this._spatialHash.add(this.teamB.units[unit]);
+               this._spatialHash.add(unitObj);
             }
-            if(Entity(this.teamB.units[unit]).onScreen(this))
+            isVisible = unitObj.onScreen(this);
+            if(unitObj.visible != isVisible)
             {
-               this.teamB.units[unit].visible = true;
-               this.teamB.units[unit].mouseIsOver = false;
-               if(Boolean(this.teamB.units[unit].mc.mc.hitTestPoint(stage.mouseX,stage.mouseY,false)))
+               unitObj.visible = isVisible;
+            }
+            if(isVisible)
+            {
+               unitObj.mouseIsOver = false;
+               if(Boolean(unitObj.mc.mc.hitTestPoint(mouseX,mouseY,false)))
                {
-                  if(this.determineIfBetterSelection(this.teamB.units[unit]))
+                  if(this.determineIfBetterSelection(unitObj))
                   {
-                     this.mouseOverUnit = this.teamB.units[unit];
+                     this.mouseOverUnit = unitObj;
                   }
                }
-            }
-            else
-            {
-               this.teamB.units[unit].visible = false;
             }
          }
          for(gold in this.map.gold)
          {
             Entity(this.map.gold[gold]).mouseIsOver = false;
-            if(Gold(this.map.gold[gold]).frontOre.hitTestPoint(stage.mouseX,stage.mouseY,true) || Gold(this.map.gold[gold]).ore.hitTestPoint(stage.mouseX,stage.mouseY,true))
+            if(Gold(this.map.gold[gold]).frontOre.hitTestPoint(mouseX,mouseY,true) || Gold(this.map.gold[gold]).ore.hitTestPoint(mouseX,mouseY,true))
             {
                if(this.determineIfBetterSelection(Entity(this.map.gold[gold])))
                {
@@ -484,7 +503,7 @@ package com.brockw.stickwar.engine
             Gold(this.map.gold[gold]).update(this);
          }
          this.team.statue.mouseIsOver = false;
-         if(this.team.statue.hitTestPoint(stage.mouseX,stage.mouseY,true) && this.determineIfBetterSelection(this.team.statue))
+         if(this.team.statue.hitTestPoint(mouseX,mouseY,true) && this.determineIfBetterSelection(this.team.statue))
          {
             this.mouseOverUnit = this.team.statue;
          }
@@ -492,7 +511,7 @@ package com.brockw.stickwar.engine
          {
             for each(wall in this.team.enemyTeam.walls)
             {
-               if(wall.checkForHitPoint2(new Point(stage.mouseX,stage.mouseY)))
+               if(wall.checkForHitPoint2(this.wallHitPoint))
                {
                   this.mouseOverUnit = wall;
                }
@@ -525,33 +544,39 @@ package com.brockw.stickwar.engine
       
       private function sortZ(dParent:DisplayObjectContainer, skip:int = 20) : void
       {
-         var bFlipped:Boolean = false;
-         var o:int = 0;
-         skip = 1;
-         if(dParent.numChildren > 60)
+         var childA:DisplayObject = null;
+         var childB:DisplayObject = null;
+         var entityA:Entity = null;
+         var entityB:Entity = null;
+         var childCount:int = dParent.numChildren;
+         var i:int = 0;
+         var j:int = 0;
+         if(childCount < 2)
          {
-            skip = 10 + (dParent.numChildren - 60);
+            return;
          }
-         var isOdd:int = this.random.nextInt() % skip;
-         for(var i:int = dParent.numChildren - 1 - isOdd; i > 0; )
+         i = 1;
+         while(i < childCount)
          {
-            bFlipped = false;
-            for(o = 0; o < i; o++)
+            j = i;
+            while(j > 0)
             {
-               if(dParent.getChildAt(o) is Entity && dParent.getChildAt(o + 1) is Entity)
+               childA = dParent.getChildAt(j - 1);
+               childB = dParent.getChildAt(j);
+               if(!(childA is Entity) || !(childB is Entity))
                {
-                  if(Entity(dParent.getChildAt(o)).py > Entity(dParent.getChildAt(o + 1)).py)
-                  {
-                     dParent.swapChildrenAt(o,o + 1);
-                     bFlipped = true;
-                  }
+                  break;
                }
+               entityA = childA;
+               entityB = childB;
+               if(entityA.py <= entityB.py)
+               {
+                  break;
+               }
+               dParent.swapChildrenAt(j - 1,j);
+               j--;
             }
-            if(!bFlipped)
-            {
-               return;
-            }
-            i -= skip;
+            i++;
          }
       }
       
@@ -630,6 +655,11 @@ package com.brockw.stickwar.engine
       public function set battlefield(value:Sprite) : void
       {
          this._battlefield = value;
+         if(this._battlefield != null)
+         {
+            this._battlefield.mouseEnabled = false;
+            this._battlefield.mouseChildren = false;
+         }
       }
       
       public function get background() : Background
@@ -640,6 +670,11 @@ package com.brockw.stickwar.engine
       public function set background(value:Background) : void
       {
          this._background = value;
+         if(this._background != null)
+         {
+            this._background.mouseEnabled = false;
+            this._background.mouseChildren = false;
+         }
       }
       
       public function get map() : Map
@@ -860,6 +895,11 @@ package com.brockw.stickwar.engine
       public function set bloodManager(value:BloodManager) : void
       {
          this._bloodManager = value;
+         if(this._bloodManager != null)
+         {
+            this._bloodManager.mouseEnabled = false;
+            this._bloodManager.mouseChildren = false;
+         }
       }
       
       public function get postCursors() : Array
@@ -880,6 +920,11 @@ package com.brockw.stickwar.engine
       public function set fogOfWar(value:FogOfWar) : void
       {
          this._fogOfWar = value;
+         if(this._fogOfWar != null)
+         {
+            this._fogOfWar.mouseEnabled = false;
+            this._fogOfWar.mouseChildren = false;
+         }
       }
       
       public function get commandFactory() : CommandFactory

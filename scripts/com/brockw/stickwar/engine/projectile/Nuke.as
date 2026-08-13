@@ -8,6 +8,8 @@ package com.brockw.stickwar.engine.projectile
    public class Nuke extends Projectile
    {
       
+      public var suppressVisual:Boolean;
+      
       internal var spellMc:MovieClip;
       
       internal var explosionRadius:Number;
@@ -18,6 +20,7 @@ package com.brockw.stickwar.engine.projectile
       {
          super();
          type = NUKE;
+         this.suppressVisual = false;
          this.spellMc = new explosionBomber();
          this.addChild(this.spellMc);
          this.explosionRadius = game.xml.xml.Chaos.Units.bomber.explosionRadius;
@@ -34,6 +37,7 @@ package com.brockw.stickwar.engine.projectile
       override public function update(game:StickWar) : void
       {
          Util.animateMovieClip(this.spellMc,4);
+         this.visible = !this.suppressVisual;
          this.scaleX = 1 * (game.backScale + py / game.map.height * (game.frontScale - game.backScale));
          this.scaleY = 1 * (game.backScale + py / game.map.height * (game.frontScale - game.backScale));
          var units:Array = team.enemyTeam.units;
@@ -71,4 +75,3 @@ package com.brockw.stickwar.engine.projectile
       }
    }
 }
-

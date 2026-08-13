@@ -8,12 +8,14 @@ package com.brockw.stickwar.campaign
    import flash.display.MovieClip;
    import flash.events.Event;
    import flash.events.MouseEvent;
-   import flash.net.URLLoader;
-   import flash.net.URLLoaderDataFormat;
+   import flash.media.Sound;
+   import flash.media.SoundChannel;
+   import flash.media.SoundTransform;
    import flash.net.URLRequest;
    import flash.net.navigateToURL;
    import flash.system.Security;
    import flash.utils.Dictionary;
+   import flash.utils.getDefinitionByName;
    import flash.utils.getTimer;
    
    public class CampaignMenuScreen extends Screen
@@ -35,6 +37,14 @@ package com.brockw.stickwar.campaign
       
       private static const SCREEN_WIDTH:int = 850;
       
+      private static const INTRO_VIDEO_LINKAGE:String = "IntroVideoMc";
+      
+      private static const INTRO_AUDIO_LINKAGE:String = "StickWar_2_Intro_Audio";
+      
+      private static const INTRO_VIDEO_WIDTH:int = 640;
+      
+      private static const INTRO_VIDEO_HEIGHT:int = 360;
+      
       private var isFirst:Boolean;
       
       private var mc:campaignMenuMc;
@@ -49,13 +59,17 @@ package com.brockw.stickwar.campaign
       
       private var buttonsHit:Dictionary;
       
-      private var main:BaseMain;
+       private var main:BaseMain;
       
-      private var youtubeLoader:YoutubeLoader;
+      private var introVideo:MovieClip;
+      
+      private var introVideoFailed:Boolean;
+      
+      private var introAudioChannel:SoundChannel;
       
       private var keyboard:KeyboardState;
       
-      private var mouseState:MouseState;
+     private var mouseState:MouseState;
       
       private var version:String;
       
@@ -66,8 +80,6 @@ package com.brockw.stickwar.campaign
       public function CampaignMenuScreen(main:BaseMain)
       {
          var p:MovieClip = null;
-         var urlRequest:URLRequest = null;
-         var urlLoader:URLLoader = null;
          super();
          var xmlLoader:XMLLoader = new XMLLoader();
          this.version = xmlLoader.xml.campaignVersion;
@@ -85,26 +97,8 @@ package com.brockw.stickwar.campaign
          this.buttons = [];
          this.buttonsHit = new Dictionary();
          Security.allowDomain("stickempires.com");
-         urlRequest = new URLRequest("http://www.stickempires.com/getIntroLink");
-         urlLoader = new URLLoader();
-         urlLoader.dataFormat = URLLoaderDataFormat.TEXT;
-         urlLoader.addEventListener(Event.COMPLETE,this.handleComplete);
-         urlLoader.load(urlRequest);
-         this.youtubeLoader = new YoutubeLoader("w6q9EoFmu0w");
-         addChild(this.youtubeLoader);
          this.hasInitStickpageLink = false;
          this.mc.introBrokenMc.visible = false;
-      }
-      
-      public function handleComplete(e:Event) : void
-      {
-         var link:String = e.target.data;
-         if(link != "")
-         {
-            removeChild(this.youtubeLoader);
-            this.youtubeLoader = new YoutubeLoader(link);
-            addChild(this.youtubeLoader);
-         }
       }
       
       private function addNewButton(mc:MovieClip, timeDelay:Number, func:Function) : void
@@ -142,6 +136,63 @@ package com.brockw.stickwar.campaign
          this.state = S_INTRO;
          this.main.soundManager.playSoundInBackground("");
          this.timeSinceTriedToStartYoutube = getTimer();
+         this.startIntroVideo();
+      }
+      
+      private function startIntroVideo() : void
+      {
+         var introClass:Class = null;
+         var introAudioClass:Class = null;
+         var introAudio:Sound = null;
+         this.stopIntroVideo();
+         this.introVideoFailed = false;
+         try
+         {
+            introClass = getDefinitionByName(INTRO_VIDEO_LINKAGE);
+            introAudioClass = getDefinitionByName(INTRO_AUDIO_LINKAGE);
+            introAudio = new introAudioClass();
+            this.introVideo = new introClass();
+            this.positionIntroVideo();
+            this.introVideo.gotoAndPlay(1);
+            addChild(this.introVideo);
+            this.introAudioChannel = introAudio.play(0,0,new SoundTransform(this.main.soundManager.isMusic ? 1.5 : 0));
+         }
+         catch(e:SecurityError)
+         {
+            this.introVideoFailed = true;
+         }
+         catch(e:Error)
+         {
+            this.introVideoFailed = true;
+         }
+      }
+      
+      private function stopIntroVideo() : void
+      {
+         if(this.introVideo != null)
+         {
+            this.introVideo.stop();
+            if(contains(this.introVideo))
+            {
+               removeChild(this.introVideo);
+            }
+            this.introVideo = null;
+         }
+         if(this.introAudioChannel != null)
+         {
+            this.introAudioChannel.stop();
+            this.introAudioChannel = null;
+         }
+      }
+      
+      private function positionIntroVideo() : void
+      {
+         if(this.introVideo == null)
+         {
+            return;
+         }
+         this.introVideo.x = SCREEN_WIDTH / 2 - INTRO_VIDEO_WIDTH / 2;
+         this.introVideo.y = SCREEN_HEIGHT / 2 - INTRO_VIDEO_HEIGHT / 2;
       }
       
       private function stickpageLink(e:Event) : void
@@ -185,37 +236,39 @@ package com.brockw.stickwar.campaign
          this.mc.creditsButton.visible = false;
          if(this.state == S_INTRO)
          {
-            if(getTimer() - this.timeSinceTriedToStartYoutube > 3 * 1000 && !this.youtubeLoader.isWorking())
+            if(getTimer() - this.timeSinceTriedToStartYoutube > 3 * 1000 && this.introVideoFailed)
             {
-               this.youtubeLoader.visible = false;
-               this.youtubeLoader.stopVideo();
-               this.mc.introBrokenMc.visible = true;
-               this.mc.introBrokenMc.buttonMode = true;
+               this.stopIntroVideo();
+               this.skipButton();
             }
             else
             {
-               this.mc.introBrokenMc.buttonMode = false;
-               if(Boolean(this.youtubeLoader))
+               if(this.introVideo != null)
                {
-                  this.youtubeLoader.visible = true;
-                  this.youtubeLoader.playVideo();
-                  this.youtubeLoader.x = SCREEN_WIDTH / 2 - 640 / 2;
-                  this.youtubeLoader.y = SCREEN_HEIGHT / 2 - 360 / 2;
+                  this.introVideo.visible = true;
+                  this.positionIntroVideo();
+                  if(contains(this.mc))
+                  {
+                     setChildIndex(this.mc,numChildren - 1);
+                     if(this.mc.introOverlay != null)
+                     {
+                        this.mc.introOverlay.visible = true;
+                     }
+                     setChildIndex(this.introVideo,numChildren - 1);
+                  }
+                  if(this.introVideo.currentFrame >= this.introVideo.totalFrames)
+                  {
+                     this.skipButton();
+                  }
                }
                this.mc.introOverlay.visible = true;
-               if(this.youtubeLoader.getTimePlayed() > 105)
-               {
-                  this.youtubeLoader.pauseVideo();
-                  this.skipButton();
-               }
                this.mc.backButton.visible = false;
                this.mc.creditsButton.visible = false;
             }
          }
-         else if(Boolean(this.youtubeLoader))
+         else
          {
-            this.youtubeLoader.visible = false;
-            this.youtubeLoader.stopVideo();
+            this.stopIntroVideo();
             this.mc.introOverlay.visible = false;
          }
          if(Boolean(this.mc.difficultySelectOverlay))
@@ -492,7 +545,7 @@ package com.brockw.stickwar.campaign
          this.mc.creditsButton.removeEventListener(MouseEvent.CLICK,this.creditsButton);
          this.buttons = [];
          this.keyboard.cleanUp();
-         this.youtubeLoader.stopVideo();
+         this.stopIntroVideo();
          this.mouseState.cleanUp();
          this.mc.mainPanel.onlineButton.removeEventListener(MouseEvent.CLICK,this.onlineButton);
          this.mc.mainPanel.stickWarButton.removeEventListener(MouseEvent.CLICK,this.stickWarButton);

@@ -15,12 +15,17 @@ package com.brockw.stickwar
    public class stickwar2 extends BaseMain
    {
       
+      public static var instObj:*;
+      public static var bgSprite:Sprite;
+      public static var isDarkTheme:Boolean = true;
+      
       private var campaignMenuScreen:CampaignMenuScreen;
       
       private var _postGameScreen:PostGameScreen;
       
       public function stickwar2()
       {
+         instObj = this;
          super();
          var xmlLoader:XMLLoader = new XMLLoader();
          this.xml = xmlLoader;
@@ -42,6 +47,13 @@ package com.brockw.stickwar
          var apiPath:String = null;
          var request:URLRequest = null;
          var loader:Loader = null;
+         stage.scaleMode = StageScaleMode.SHOW_ALL;
+         stage.align = StageAlign.TOP;
+         bgSprite = new Sprite();
+         bgSprite.graphics.beginFill(0);
+         bgSprite.graphics.drawRect(-2500, -2500, 5000, 5000);
+         addChildAt(bgSprite, 0);
+         stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
          showScreen("mainMenu");
          tracker = null;
          if(ExternalInterface.available)
@@ -69,6 +81,16 @@ package com.brockw.stickwar
          kongregate = event.target.content;
          kongregate.services.connect();
       }
+      
+      private function onKeyDown(e:KeyboardEvent) : void
+      {
+         if(e.keyCode == 76)
+         {
+            isDarkTheme = !isDarkTheme;
+            bgSprite.graphics.clear();
+            bgSprite.graphics.beginFill(isDarkTheme ? 0 : 0xFFFFFF);
+            bgSprite.graphics.drawRect(-2500, -2500, 5000, 5000);
+         }
+      }
    }
 }
-

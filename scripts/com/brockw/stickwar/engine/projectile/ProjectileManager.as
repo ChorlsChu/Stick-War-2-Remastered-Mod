@@ -12,6 +12,16 @@ package com.brockw.stickwar.engine.projectile
    public class ProjectileManager
    {
       
+      private static const CLEANUP_PER_FRAME:int = 15;
+      
+      private static const NUKE_VISUAL_CLUSTER_RADIUS:Number = 40;
+      
+      private static const NUKE_VISUAL_CLUSTER_WINDOW_FRAMES:int = 3;
+      
+      private static const BOMBER_NUKE_VISUAL_CLUSTER_MAX:int = 2;
+      
+      private static const MAGIKILL_NUKE_VISUAL_CLUSTER_MAX:int = 5;
+      
       private var arrowPool:Pool;
       
       private var gutPool:Pool;
@@ -39,6 +49,8 @@ package com.brockw.stickwar.engine.projectile
       private var _airEffects:Array;
       
       private var _game:StickWar;
+      
+      private var recentNukeVisualSpawns:Array;
       
       public function ProjectileManager(game:StickWar)
       {
@@ -68,6 +80,7 @@ package com.brockw.stickwar.engine.projectile
          this._waitingToBeCleaned = [];
          this._airEffects = [];
          this.medusaPoisonAmount = game.xml.xml.Chaos.Units.medusa.poison.poison;
+         this.recentNukeVisualSpawns = [];
       }
       
       public function cleanUp() : void
@@ -387,11 +400,12 @@ package com.brockw.stickwar.engine.projectile
       public function initNuke(x:Number, y:Number, unit:Unit, damage:Number) : void
       {
          var n:Nuke = Nuke(this._projectileMap[Projectile.NUKE].getItem());
+         var showVisual:Boolean = false;
+         var visualLimit:int = 0;
          if(n == null)
          {
             return;
          }
-         n.visible = true;
          if(Math.abs(x - unit.px) > unit.team.game.xml.xml.Order.Units.magikill.nuke.range)
          {
             x = unit.px + Util.sgn(x - unit.px) * unit.team.game.xml.xml.Order.Units.magikill.nuke.range;
@@ -406,9 +420,70 @@ package com.brockw.stickwar.engine.projectile
          n.spellMc.gotoAndStop(1);
          n.stunTime = 0;
          n.explosionDamage = damage;
+         visualLimit = this.getNukeVisualClusterLimit(unit);
+         showVisual = this.shouldShowNukeVisualAt(x,y,visualLimit);
+         n.suppressVisual = !showVisual;
+         n.visible = showVisual;
          this.projectiles.push(n);
          unit.team.game.battlefield.addChild(n);
-         unit.team.game.bloodManager.addAsh(x,y,unit.team.direction,unit.team.game);
+         if(showVisual)
+         {
+            unit.team.game.bloodManager.addAsh(x,y,unit.team.direction,unit.team.game);
+         }
+      }
+      
+      private function getNukeVisualClusterLimit(unit:Unit) : int
+      {
+         if(unit.type == Unit.U_BOMBER)
+         {
+            return BOMBER_NUKE_VISUAL_CLUSTER_MAX;
+         }
+         if(unit.type == Unit.U_MAGIKILL)
+         {
+            return MAGIKILL_NUKE_VISUAL_CLUSTER_MAX;
+         }
+         return 0;
+      }
+      
+      private function shouldShowNukeVisualAt(x:Number, y:Number, visualLimit:int) : Boolean
+      {
+         var currentFrame:int = this._game.frame;
+         var i:int = 0;
+         var entry:Object = null;
+         var visibleCount:int = 0;
+         var writeIndex:int = 0;
+         var dx:Number = Number(NaN);
+         var dy:Number = Number(NaN);
+         if(visualLimit <= 0)
+         {
+            return true;
+         }
+         i = 0;
+         while(i < this.recentNukeVisualSpawns.length)
+         {
+            entry = this.recentNukeVisualSpawns[i];
+            if(currentFrame - int(entry.frame) <= NUKE_VISUAL_CLUSTER_WINDOW_FRAMES)
+            {
+               this.recentNukeVisualSpawns[writeIndex] = entry;
+               writeIndex++;
+               dx = Number(entry.x) - x;
+               dy = Number(entry.y) - y;
+               if(entry.visible && dx * dx + dy * dy <= NUKE_VISUAL_CLUSTER_RADIUS * NUKE_VISUAL_CLUSTER_RADIUS)
+               {
+                  visibleCount++;
+               }
+            }
+            i++;
+         }
+         this.recentNukeVisualSpawns.length = writeIndex;
+         entry = {
+            "frame":currentFrame,
+            "x":x,
+            "y":y,
+            "visible":visibleCount < visualLimit
+         };
+         this.recentNukeVisualSpawns.push(entry);
+         return entry.visible;
       }
       
       public function initWallExplosion(x:Number, y:Number, team:Team) : void
@@ -567,6 +642,10 @@ package com.brockw.stickwar.engine.projectile
       {
          var i:int = 0;
          var p:Projectile = null;
+         var cleanedCount:int = 0;
+         var waitingLength:int = 0;
+         var writeIndex:int = 0;
+         var readIndex:int = 0;
          for(i = 0; i < this.projectiles.length; i++)
          {
             if(!Projectile(this.projectiles[i]).isInFlight())
@@ -580,19 +659,30 @@ package com.brockw.stickwar.engine.projectile
                this.projectiles[i].update(game);
             }
          }
-         for(i = 0; i < this._waitingToBeCleaned.length; i++)
+         waitingLength = int(this._waitingToBeCleaned.length);
+         writeIndex = 0;
+         readIndex = 0;
+         while(readIndex < waitingLength)
          {
-            ++this._waitingToBeCleaned[i].framesDead;
-         }
-         while(this._waitingToBeCleaned.length != 0 && Boolean(this._waitingToBeCleaned[0].isReadyForCleanup()))
-         {
-            p = this._waitingToBeCleaned.shift();
-            if(game.battlefield.contains(p))
+            p = this._waitingToBeCleaned[readIndex];
+            ++p.framesDead;
+            if(cleanedCount < CLEANUP_PER_FRAME && p.isReadyForCleanup())
             {
-               game.battlefield.removeChild(p);
+               if(game.battlefield.contains(p))
+               {
+                  game.battlefield.removeChild(p);
+               }
+               this._projectileMap[p.type].returnItem(p);
+               cleanedCount++;
             }
-            this._projectileMap[p.type].returnItem(p);
+            else
+            {
+               this._waitingToBeCleaned[writeIndex] = p;
+               writeIndex++;
+            }
+            readIndex++;
          }
+         this._waitingToBeCleaned.length = writeIndex;
       }
       
       public function get projectiles() : Array
