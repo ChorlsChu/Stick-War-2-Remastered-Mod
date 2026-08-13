@@ -5,6 +5,7 @@ package com.brockw.stickwar.campaign
    import com.brockw.stickwar.BaseMain;
    import flash.display.MovieClip;
    import flash.events.*;
+   import flash.geom.Rectangle;
    import flash.net.URLRequest;
    import flash.net.navigateToURL;
    
@@ -53,6 +54,7 @@ package com.brockw.stickwar.campaign
          }
          addEventListener(Event.ENTER_FRAME,this.update);
          addEventListener(MouseEvent.CLICK,this.click);
+         this.scrollRect = new Rectangle(0,0,850,700);
          this.mc.bottomPanel.campaignButtons.autoSaveEnabled.addEventListener(MouseEvent.CLICK,this.disableSave);
          this.mc.bottomPanel.campaignButtons.autoSaveDisabled.addEventListener(MouseEvent.CLICK,this.enableSave);
          this.mc.bottomPanel.campaignButtons.playOnline.addEventListener(MouseEvent.CLICK,this.playOnlineClick);
@@ -196,6 +198,7 @@ package com.brockw.stickwar.campaign
          this.mc.bottomPanel.campaignButtons.autoSaveEnabled.removeEventListener(MouseEvent.CLICK,this.disableSave);
          this.mc.bottomPanel.campaignButtons.autoSaveDisabled.removeEventListener(MouseEvent.CLICK,this.enableSave);
          this.mc.saveGamePrompt.okButton.removeEventListener(MouseEvent.CLICK,this.okButton);
+         this.scrollRect = null;
       }
       
       private function clickMainMenu(evt:MouseEvent) : void
