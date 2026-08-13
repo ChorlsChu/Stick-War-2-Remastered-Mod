@@ -154,7 +154,7 @@ package com.brockw.stickwar
          this.isFastForward = false;
          this.stage.scaleMode = StageScaleMode.SHOW_ALL;
          this.stage.align = StageAlign.TOP;
-         this.scrollRect = new Rectangle(0, 0, 850, 700);
+         this.scrollRect = new Rectangle(0,0,850,700);
       }
       
       public function u(evt:Event) : void

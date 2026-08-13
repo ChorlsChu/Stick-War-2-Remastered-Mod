@@ -198,7 +198,7 @@ package com.brockw.stickwar.engine
             {
                this.hud.hud.fastForward.visible = true;
                this.hud.hud.fastForward.addEventListener(MouseEvent.CLICK,this.clickFastForward,true);
-               MovieClip(this.hud.hud.fastForward).buttonMode = true;
+               this.hud.hud.fastForward.buttonMode = true;
             }
             else
             {
@@ -275,7 +275,7 @@ package com.brockw.stickwar.engine
          this.hud.hud.leftMinerButton.removeEventListener(MouseEvent.CLICK,this.unGarrisonMinerButton);
          this.hud.hud.rightMinerButton.removeEventListener(MouseEvent.CLICK,this.garrisonMinerButton);
          this._hud = null;
-         Util.recursiveRemoval(Sprite(this));
+         Util.recursiveRemoval(this);
       }
       
       private function economyButton(evt:MouseEvent) : void
@@ -387,7 +387,7 @@ package com.brockw.stickwar.engine
          var b:Building = null;
          for(i in this.team.buildings)
          {
-            b = Building(this.team.buildings[i]);
+            b = this.team.buildings[i];
             if(b.hitAreaMovieClip.hitTestPoint(stage.mouseX,stage.mouseY,true))
             {
                if(this.mouseState.clicked)
@@ -396,12 +396,12 @@ package com.brockw.stickwar.engine
                   this.mouseState.oldMouseDown = false;
                   this.mouseState.clicked = false;
                   b.selected = true;
-                  this.selectedUnits.add(Unit(b));
+                  this.selectedUnits.add(b);
                   this.mouseState.clicked = false;
                   if(b.button.currentFrame != 3)
                   {
                      b.button.gotoAndStop(3);
-                     Util.animateToNeutral(MovieClip(b.button),-1);
+                     Util.animateToNeutral(b.button,-1);
                   }
                   b.button.gotoAndStop(3);
                }
@@ -410,7 +410,7 @@ package com.brockw.stickwar.engine
                   if(b.button.currentFrame != 2)
                   {
                      b.button.gotoAndStop(2);
-                     Util.animateToNeutral(MovieClip(b.button),-1);
+                     Util.animateToNeutral(b.button,-1);
                   }
                   b.button.gotoAndStop(2);
                }
@@ -420,11 +420,11 @@ package com.brockw.stickwar.engine
                if(b.button.currentFrame != 1)
                {
                   b.button.gotoAndStop(1);
-                  Util.animateToNeutral(MovieClip(b.button),-1);
+                  Util.animateToNeutral(b.button,-1);
                }
                b.button.gotoAndStop(1);
             }
-            Util.animateMovieClip(MovieClip(b.button),0,-1);
+            Util.animateMovieClip(b.button,0,-1);
          }
       }
       
@@ -440,11 +440,11 @@ package com.brockw.stickwar.engine
          var loser:Team = null;
          var m:ScreenPositionUpdateMove = null;
          var mouseWidth:int = 0;
-         var posX:Number = NaN;
-         var posY:Number = NaN;
+         var posX:Number = Number(NaN);
+         var posY:Number = Number(NaN);
          var p:Point = null;
-         var dposX:Number = NaN;
-         var dposY:Number = NaN;
+         var dposX:Number = Number(NaN);
+         var dposY:Number = Number(NaN);
          var wall:Wall = null;
          var candidate:Entity = null;
          var type:int = 0;
@@ -744,26 +744,26 @@ package com.brockw.stickwar.engine
                {
                   if(wall.checkForHitPoint3(new Point(stage.mouseX,stage.mouseY)))
                   {
-                     this.selectedUnits.add(Unit(wall));
-                     Unit(wall).selected = true;
+                     this.selectedUnits.add(wall);
+                     wall.selected = true;
                   }
                   else
                   {
-                     Unit(wall).selected = false;
+                     wall.selected = false;
                   }
                }
                candidate = this.gameScreen.game.mouseOverUnit;
-               if(candidate != null && candidate is Unit && Unit(candidate).team == this.team && !(candidate is Statue))
+               if(candidate != null && candidate is Unit && candidate.team == this.team && !(candidate is Statue))
                {
                   if(this.keyBoardState.isShift)
                   {
-                     Unit(candidate).selected = true;
+                     candidate.selected = true;
                   }
                   else
                   {
-                     Unit(candidate).selected = true;
+                     candidate.selected = true;
                   }
-                  this.selectedUnits.add(Unit(candidate));
+                  this.selectedUnits.add(candidate);
                }
             }
             if(this.mouseState.doubleClicked)
@@ -773,7 +773,7 @@ package com.brockw.stickwar.engine
                   this.selectedUnits.clear();
                }
                type = -1;
-               if(this.gameScreen.game.mouseOverUnit != null && this.gameScreen.game.mouseOverUnit is Unit && Unit(this.gameScreen.game.mouseOverUnit).team == this.team)
+               if(this.gameScreen.game.mouseOverUnit != null && this.gameScreen.game.mouseOverUnit is Unit && this.gameScreen.game.mouseOverUnit.team == this.team)
                {
                   type = this.gameScreen.game.mouseOverUnit.type;
                }
@@ -781,17 +781,17 @@ package com.brockw.stickwar.engine
                {
                   x = this.team.units[unit].x - this.gameScreen.game.screenX;
                   y = this.team.units[unit].y + this.gameScreen.game.battlefield.y;
-                  if(Unit(this.team.units[unit]).type == type || Unit(this.team.units[unit]).selected && this.keyBoardState.isShift)
+                  if(this.team.units[unit].type == type || this.team.units[unit].selected && this.keyBoardState.isShift)
                   {
-                     Unit(this.team.units[unit]).selected = true;
+                     this.team.units[unit].selected = true;
                   }
                   else
                   {
-                     Unit(this.team.units[unit]).selected = false;
+                     this.team.units[unit].selected = false;
                   }
-                  if(Unit(this.team.units[unit]).selected)
+                  if(this.team.units[unit].selected)
                   {
-                     this.selectedUnits.add(Unit(this.team.units[unit]));
+                     this.selectedUnits.add(this.team.units[unit]);
                   }
                }
             }
@@ -803,21 +803,21 @@ package com.brockw.stickwar.engine
             {
                if(this.team.units[unit].isAlive())
                {
-                  if(!(Boolean(Unit(this.team.units[unit]).interactsWith & Unit.I_IS_BUILDING)))
+                  if(!(Boolean(this.team.units[unit].interactsWith & Unit.I_IS_BUILDING)))
                   {
                      x = int(this.team.units[unit].x);
                      y = int(this.team.units[unit].y);
                      if(this.keyBoardState.isShift)
                      {
-                        Unit(this.team.units[unit]).selected = this.box.isInside(x,y,this.team.units[unit].mc.height / 2,20) || Unit(this.team.units[unit]).selected || this.gameScreen.game.mouseOverUnit == this.team.units[unit];
+                        this.team.units[unit].selected = this.box.isInside(x,y,this.team.units[unit].mc.height / 2,20) || this.team.units[unit].selected || this.gameScreen.game.mouseOverUnit == this.team.units[unit];
                      }
                      else
                      {
-                        Unit(this.team.units[unit]).selected = this.box.isInside(x,y,this.team.units[unit].mc.height / 2,20) || this.gameScreen.game.mouseOverUnit == this.team.units[unit];
+                        this.team.units[unit].selected = this.box.isInside(x,y,this.team.units[unit].mc.height / 2,20) || this.gameScreen.game.mouseOverUnit == this.team.units[unit];
                      }
-                     if(Unit(this.team.units[unit]).selected)
+                     if(this.team.units[unit].selected)
                      {
-                        this.selectedUnits.add(Unit(this.team.units[unit]));
+                        this.selectedUnits.add(this.team.units[unit]);
                      }
                   }
                }

@@ -29,7 +29,7 @@ package com.brockw.stickwar.engine.projectile
             mc = this.spellMc.getChildAt(i);
             if(mc is MovieClip)
             {
-               MovieClip(mc).gotoAndStop(Math.floor(game.random.nextNumber() * MovieClip(mc).totalFrames));
+               mc.gotoAndStop(Math.floor(game.random.nextNumber() * mc.totalFrames));
                this.childClips.push(mc);
             }
             i++;
@@ -78,7 +78,7 @@ package com.brockw.stickwar.engine.projectile
          {
             if(Math.abs(unit.px - this.px) < this.wallArea)
             {
-               Entity(unit.damage(Unit.D_NO_SOUND | Unit.D_NO_BLOOD,damageToDeal,null));
+               unit.damage(Unit.D_NO_SOUND | Unit.D_NO_BLOOD,damageToDeal,null);
             }
          }
       }
@@ -94,3 +94,4 @@ package com.brockw.stickwar.engine.projectile
       }
    }
 }
+

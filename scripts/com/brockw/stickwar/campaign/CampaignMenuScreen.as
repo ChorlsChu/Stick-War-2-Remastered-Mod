@@ -59,7 +59,7 @@ package com.brockw.stickwar.campaign
       
       private var buttonsHit:Dictionary;
       
-       private var main:BaseMain;
+      private var main:BaseMain;
       
       private var introVideo:MovieClip;
       
@@ -69,7 +69,7 @@ package com.brockw.stickwar.campaign
       
       private var keyboard:KeyboardState;
       
-     private var mouseState:MouseState;
+      private var mouseState:MouseState;
       
       private var version:String;
       

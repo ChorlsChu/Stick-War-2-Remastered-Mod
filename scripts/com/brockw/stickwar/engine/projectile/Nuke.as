@@ -50,8 +50,8 @@ package com.brockw.stickwar.engine.projectile
       
       private function damageUnit(unit:Unit) : void
       {
-         var minDamage:Number = NaN;
-         var maxDamage:Number = NaN;
+         var minDamage:Number = Number(NaN);
+         var maxDamage:Number = Number(NaN);
          if(unit.team != this.team)
          {
             if(Math.pow(unit.px - this.px,2) + Math.pow(unit.py - this.py,2) < Math.pow(this.explosionRadius,2))
@@ -75,3 +75,4 @@ package com.brockw.stickwar.engine.projectile
       }
    }
 }
+

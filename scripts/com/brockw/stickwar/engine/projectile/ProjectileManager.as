@@ -5,7 +5,6 @@ package com.brockw.stickwar.engine.projectile
    import com.brockw.stickwar.engine.StickWar;
    import com.brockw.stickwar.engine.Team.*;
    import com.brockw.stickwar.engine.units.*;
-   import flash.display.MovieClip;
    import flash.geom.Point;
    import flash.utils.Dictionary;
    
@@ -108,7 +107,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initReaper(unit:Unit, target:Unit) : void
       {
-         var n:Reaper = Reaper(this._projectileMap[Projectile.REAPER].getItem());
+         var n:Reaper = this._projectileMap[Projectile.REAPER].getItem();
          if(n == null)
          {
             return;
@@ -126,15 +125,15 @@ package com.brockw.stickwar.engine.projectile
       public function initFistAttack(x:Number, y:Number, unit:Unit, num:int) : void
       {
          var n:FistAttack = null;
-         var dy:Number = NaN;
-         var numFloat:Number = NaN;
-         n = FistAttack(this._projectileMap[Projectile.FIST_ATTACK].getItem());
+         var dy:Number = Number(NaN);
+         var numFloat:Number = Number(NaN);
+         n = this._projectileMap[Projectile.FIST_ATTACK].getItem();
          if(n == null)
          {
             return;
          }
          n.visible = false;
-         var p:Point = MovieClip(unit.mc).localToGlobal(new Point(0,0));
+         var p:Point = unit.mc.localToGlobal(new Point(0,0));
          var r:Point = unit.team.game.battlefield.globalToLocal(p);
          n.team = unit.team;
          n.x = r.x;
@@ -150,7 +149,7 @@ package com.brockw.stickwar.engine.projectile
          n.x = n.px = n.startX + dx * numFloat * 400 / 6;
          n.y = n.py = n.startY + dy * numFloat * 400 / 6;
          n.inflictor = unit;
-         n.damageToDeal = Skelator(unit).fistDamage;
+         n.damageToDeal = unit.fistDamage;
          n.spellMc.gotoAndStop(1);
          n.stunTime = 0;
          unit.team.game.battlefield.addChild(n);
@@ -165,7 +164,7 @@ package com.brockw.stickwar.engine.projectile
       public function initPoisonSpray(x:Number, y:Number, unit:Unit) : void
       {
          var n:PoisonSpray = null;
-         n = PoisonSpray(this._projectileMap[Projectile.POISON_SPRAY].getItem());
+         n = this._projectileMap[Projectile.POISON_SPRAY].getItem();
          if(n == null)
          {
             return;
@@ -174,7 +173,7 @@ package com.brockw.stickwar.engine.projectile
          n.px = unit.px;
          n.py = unit.py;
          n.inflictor = unit;
-         var p:Point = MovieClip(unit.mc.mc.wizstaff).localToGlobal(new Point(0,0));
+         var p:Point = unit.mc.mc.wizstaff.localToGlobal(new Point(0,0));
          var r:Point = unit.team.game.battlefield.globalToLocal(p);
          n.team = unit.team;
          n.x = r.x;
@@ -193,7 +192,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initSlowDart(x:Number, y:Number, z:Number, unit:Unit, target:Unit) : void
       {
-         var n:SlowDart = SlowDart(this._projectileMap[Projectile.SLOW_DART].getItem());
+         var n:SlowDart = this._projectileMap[Projectile.SLOW_DART].getItem();
          if(n == null)
          {
             return;
@@ -208,7 +207,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initTowerDart(x:Number, y:Number, z:Number, unit:Unit, target:Unit) : void
       {
-         var n:ChaosTowerDart = ChaosTowerDart(this._projectileMap[Projectile.TOWER_DART].getItem());
+         var n:ChaosTowerDart = this._projectileMap[Projectile.TOWER_DART].getItem();
          if(n == null)
          {
             return;
@@ -222,7 +221,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initArrow(x:Number, y:Number, rotation:Number, velocity:Number, targetY:Number, dy:Number, unit:Unit, damage:Number, poison:Number, isFire:Boolean, area:Number = 0, areaDamage:Number = 0) : void
       {
-         var n:Arrow = Arrow(this._projectileMap[Projectile.ARROW].getItem());
+         var n:Arrow = this._projectileMap[Projectile.ARROW].getItem();
          n.setArrowGraphics(isFire > 0 ? true : false);
          n.isFire = isFire;
          if(n == null)
@@ -257,7 +256,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initBoulder(x:Number, y:Number, rotation:Number, velocity:Number, targetY:Number, dy:Number, unit:Unit, damage:Number, isDebris:Boolean) : void
       {
-         var n:Boulder = Boulder(this._projectileMap[Projectile.BOULDER].getItem());
+         var n:Boulder = this._projectileMap[Projectile.BOULDER].getItem();
          if(n == null)
          {
             return;
@@ -286,7 +285,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initBoulderDebris(x:Number, y:Number, z:Number, dx:Number, dy:Number, dz:Number, scale:Number, game:StickWar, inflictor:Unit, fromUnit:Unit) : void
       {
-         var n:Boulder = Boulder(this._projectileMap[Projectile.BOULDER].getItem());
+         var n:Boulder = this._projectileMap[Projectile.BOULDER].getItem();
          if(n == null)
          {
             return;
@@ -315,7 +314,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initBolt(x:Number, y:Number, rotation:Number, velocity:Number, targetY:Number, dy:Number, unit:Unit, damage:Number, slowFrames:int, isFire:Boolean) : void
       {
-         var n:Bolt = Bolt(this._projectileMap[Projectile.BOLT].getItem());
+         var n:Bolt = this._projectileMap[Projectile.BOLT].getItem();
          if(n == null)
          {
             return;
@@ -346,7 +345,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initGuts(x:Number, y:Number, rotation:Number, velocity:Number, targetY:Number, dy:Number, poisonDamage:Number, unit:Unit) : void
       {
-         var n:Guts = Guts(this._projectileMap[Projectile.GUTS].getItem());
+         var n:Guts = this._projectileMap[Projectile.GUTS].getItem();
          if(n == null)
          {
             return;
@@ -373,7 +372,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initStun(x:Number, y:Number, damage:int, unit:Unit) : void
       {
-         var n:ElectricWall = ElectricWall(this._projectileMap[Projectile.ELECTRIC_WALL].getItem());
+         var n:ElectricWall = this._projectileMap[Projectile.ELECTRIC_WALL].getItem();
          if(n == null)
          {
             return;
@@ -399,7 +398,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initNuke(x:Number, y:Number, unit:Unit, damage:Number) : void
       {
-         var n:Nuke = Nuke(this._projectileMap[Projectile.NUKE].getItem());
+         var n:Nuke = this._projectileMap[Projectile.NUKE].getItem();
          var showVisual:Boolean = false;
          var visualLimit:int = 0;
          if(n == null)
@@ -488,7 +487,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initWallExplosion(x:Number, y:Number, team:Team) : void
       {
-         var n:WallExplosion = WallExplosion(this._projectileMap[Projectile.WALL_EXPLOSION].getItem());
+         var n:WallExplosion = this._projectileMap[Projectile.WALL_EXPLOSION].getItem();
          if(n == null)
          {
             return;
@@ -508,7 +507,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initTowerSpawn(x:Number, y:Number, team:Team, scale:Number = 1) : void
       {
-         var n:TowerSpawn = TowerSpawn(this._projectileMap[Projectile.TOWER_SPAWN].getItem());
+         var n:TowerSpawn = this._projectileMap[Projectile.TOWER_SPAWN].getItem();
          if(n == null)
          {
             return;
@@ -529,7 +528,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initSpawnDrip(x:Number, y:Number, team:Team) : void
       {
-         var n:SpawnDrip = SpawnDrip(this._projectileMap[Projectile.SPAWN_DRIP].getItem());
+         var n:SpawnDrip = this._projectileMap[Projectile.SPAWN_DRIP].getItem();
          if(n == null)
          {
             return;
@@ -549,7 +548,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initHealEffect(x:Number, y:Number, py:Number, team:Team, unit:Unit, isCure:Boolean = false) : void
       {
-         var n:HealEffect = HealEffect(this._projectileMap[Projectile.HEAL_EFFECT].getItem());
+         var n:HealEffect = this._projectileMap[Projectile.HEAL_EFFECT].getItem();
          if(n == null)
          {
             return;
@@ -571,7 +570,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initPoisonPool(x:Number, y:Number, unit:Unit, damage:Number) : void
       {
-         var n:PoisonPool = PoisonPool(this._projectileMap[Projectile.POISON_POOL].getItem());
+         var n:PoisonPool = this._projectileMap[Projectile.POISON_POOL].getItem();
          if(n == null)
          {
             return;
@@ -600,7 +599,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initCure(x:Number, y:Number, nukeDamage:Number, unit:Unit) : void
       {
-         var n:Cure = Cure(this._projectileMap[Projectile.CURE].getItem());
+         var n:Cure = this._projectileMap[Projectile.CURE].getItem();
          if(n == null)
          {
             return;
@@ -620,7 +619,7 @@ package com.brockw.stickwar.engine.projectile
       
       public function initHeal(x:Number, y:Number, nukeDamage:Number, unit:Unit) : void
       {
-         var n:Heal = Heal(this._projectileMap[Projectile.HEAL].getItem());
+         var n:Heal = this._projectileMap[Projectile.HEAL].getItem();
          if(n == null)
          {
             return;
@@ -646,9 +645,10 @@ package com.brockw.stickwar.engine.projectile
          var waitingLength:int = 0;
          var writeIndex:int = 0;
          var readIndex:int = 0;
-         for(i = 0; i < this.projectiles.length; i++)
+         i = 0;
+         while(i < this.projectiles.length)
          {
-            if(!Projectile(this.projectiles[i]).isInFlight())
+            if(!this.projectiles[i].isInFlight())
             {
                p = this.projectiles.splice(i,1)[0];
                p.framesDead = 0;
@@ -658,6 +658,7 @@ package com.brockw.stickwar.engine.projectile
             {
                this.projectiles[i].update(game);
             }
+            i++;
          }
          waitingLength = int(this._waitingToBeCleaned.length);
          writeIndex = 0;

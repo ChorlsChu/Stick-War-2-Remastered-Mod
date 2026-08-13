@@ -16,7 +16,9 @@ package com.brockw.stickwar
    {
       
       public static var instObj:*;
+      
       public static var bgSprite:Sprite;
+      
       public static var isDarkTheme:Boolean = true;
       
       private var campaignMenuScreen:CampaignMenuScreen;
@@ -51,9 +53,9 @@ package com.brockw.stickwar
          stage.align = StageAlign.TOP;
          bgSprite = new Sprite();
          bgSprite.graphics.beginFill(0);
-         bgSprite.graphics.drawRect(-2500, -2500, 5000, 5000);
-         addChildAt(bgSprite, 0);
-         stage.addEventListener(KeyboardEvent.KEY_DOWN, this.onKeyDown);
+         bgSprite.graphics.drawRect(-2500,-2500,5000,5000);
+         addChildAt(bgSprite,0);
+         stage.addEventListener(KeyboardEvent.KEY_DOWN,this.onKeyDown);
          showScreen("mainMenu");
          tracker = null;
          if(ExternalInterface.available)
@@ -64,7 +66,7 @@ package com.brockw.stickwar
          }
          if(xml.xml.isKongregate == 1)
          {
-            paramObj = LoaderInfo(stage.root.loaderInfo).parameters;
+            paramObj = stage.root.loaderInfo.parameters;
             apiPath = paramObj.kongregate_api_path || "http://www.kongregate.com/flash/API_AS3_Local.swf";
             isKongregate = true;
             Security.allowDomain(apiPath);
@@ -88,9 +90,10 @@ package com.brockw.stickwar
          {
             isDarkTheme = !isDarkTheme;
             bgSprite.graphics.clear();
-            bgSprite.graphics.beginFill(isDarkTheme ? 0 : 0xFFFFFF);
-            bgSprite.graphics.drawRect(-2500, -2500, 5000, 5000);
+            bgSprite.graphics.beginFill(isDarkTheme ? 0 : 16777215);
+            bgSprite.graphics.drawRect(-2500,-2500,5000,5000);
          }
       }
    }
 }
+
