@@ -163,7 +163,7 @@ package com.brockw.stickwar.engine.units
                if(MovieClip(_mc.mc).currentFrame == 47 && !hasHit)
                {
                   game.soundManager.playSound("electricWall",this.spellX,this.spellY);
-                  game.projectileManager.initStun(this.spellX,this.spellY,game.xml.xml.Order.Units.magikill.electricWallDamage,this);
+                  game.projectileManager.initStun(this.spellX,this.spellY,game.xml.xml.Order.Units.magikill.electricWall.damage,this);
                   hasHit = true;
                }
                if(MovieClip(_mc.mc).currentFrame == MovieClip(_mc.mc).totalFrames)

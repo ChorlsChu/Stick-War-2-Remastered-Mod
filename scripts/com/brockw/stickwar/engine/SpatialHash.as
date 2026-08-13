@@ -24,6 +24,8 @@ package com.brockw.stickwar.engine
       
       internal var visited:Dictionary;
       
+      private var visitToken:int;
+      
       internal var game:StickWar;
       
       public function SpatialHash(game:StickWar, width:Number, height:Number, boxWidth:Number, boxHeight:Number, maxEntitys:int)
@@ -34,19 +36,24 @@ package com.brockw.stickwar.engine
          this.partitions = new Vector.<Vector.<Entity>>(width / boxWidth * height / boxHeight,false);
          this.partitionSizes = new Vector.<int>(width / boxWidth * height / boxHeight,false);
          this.visited = new Dictionary();
+         this.visitToken = 1;
          this.width = width;
          this.height = height;
          this.boxWidth = boxWidth;
          this.boxHeight = boxHeight;
          this.rows = height / boxHeight;
          this.cols = width / boxWidth;
-         for(var y:int = 0; y < this.rows; y++)
+         var y:int = 0;
+         while(y < this.rows)
          {
-            for(x = 0; x < this.cols; x++)
+            x = 0;
+            while(x < this.cols)
             {
                this.partitions[this.cols * y + x] = new Vector.<Entity>(maxEntitys,false);
                this.partitionSizes[this.cols * y + x] = 0;
+               x++;
             }
+            y++;
          }
       }
       
@@ -54,16 +61,22 @@ package com.brockw.stickwar.engine
       {
          var x:int = 0;
          var i:int = 0;
-         for(var y:int = 0; y < this.rows; y++)
+         var y:int = 0;
+         while(y < this.rows)
          {
-            for(x = 0; x < this.cols; x++)
+            x = 0;
+            while(x < this.cols)
             {
-               for(i = 0; i < this.partitions[this.cols * y + x].length; i++)
+               i = 0;
+               while(i < this.partitions[this.cols * y + x].length)
                {
                   this.partitions[this.cols * y + x][i] = null;
+                  i++;
                }
                this.partitions[this.cols * y + x] = null;
+               x++;
             }
+            y++;
          }
          this.partitions = null;
          this.partitionSizes = null;
@@ -103,10 +116,16 @@ package com.brockw.stickwar.engine
       
       public function mapInArea(xs:Number, ys:Number, xe:Number, ye:Number, f:Function, includeWalls:Boolean = true) : void
       {
-         var id:String = null;
          var wall:Wall = null;
          var y:int = 0;
          var i:int = 0;
+         var x:int = 0;
+         var cellIndex:int = 0;
+         var entity:Entity = null;
+         var startX:int = 0;
+         var startY:int = 0;
+         var endX:int = 0;
+         var endY:int = 0;
          var lower:Number = Math.min(xs,xe);
          var upper:Number = Math.max(xs,xe);
          if(includeWalls)
@@ -126,30 +145,40 @@ package com.brockw.stickwar.engine
                }
             }
          }
-         xs /= this.boxWidth;
-         ys /= this.boxHeight;
-         xe /= this.boxWidth;
-         ye /= this.boxHeight;
-         for(var x:int = xs; x < xe; x++)
+         startX = int(xs / this.boxWidth);
+         startY = int(ys / this.boxHeight);
+         endX = Math.ceil(xe / this.boxWidth) - 1;
+         endY = Math.ceil(ye / this.boxHeight) - 1;
+         ++this.visitToken;
+         if(this.visitToken == 0)
          {
-            for(y = ys; y < ye; y++)
+            this.visitToken = 1;
+            this.visited = new Dictionary();
+         }
+         x = startX;
+         while(x <= endX)
+         {
+            y = startY;
+            while(y <= endY)
             {
-               if(!(this.cols * y + x < 0 || this.cols * y + x >= this.partitions.length))
+               cellIndex = this.cols * y + x;
+               if(!(cellIndex < 0 || cellIndex >= this.partitions.length))
                {
-                  for(i = 0; i < this.partitionSizes[this.cols * y + x]; i++)
+                  i = 0;
+                  while(i < this.partitionSizes[cellIndex])
                   {
-                     if(!(this.partitions[this.cols * y + x][i].id in this.visited))
+                     entity = this.partitions[cellIndex][i];
+                     if(this.visited[entity.id] !== this.visitToken)
                      {
-                        f(this.partitions[this.cols * y + x][i]);
-                        this.visited[this.partitions[this.cols * y + x][i].id] = 0;
+                        f(entity);
+                        this.visited[entity.id] = this.visitToken;
                      }
+                     i++;
                   }
                }
+               y++;
             }
-         }
-         for(id in this.visited)
-         {
-            delete this.visited[id];
+            x++;
          }
       }
       
@@ -200,12 +229,16 @@ package com.brockw.stickwar.engine
       public function clear() : void
       {
          var x:int = 0;
-         for(var y:int = 0; y < this.rows; y++)
+         var y:int = 0;
+         while(y < this.rows)
          {
-            for(x = 0; x < this.cols; x++)
+            x = 0;
+            while(x < this.cols)
             {
                this.partitionSizes[this.cols * y + x] = 0;
+               x++;
             }
+            y++;
          }
       }
    }
