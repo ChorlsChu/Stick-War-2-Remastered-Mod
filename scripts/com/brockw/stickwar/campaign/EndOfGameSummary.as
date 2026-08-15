@@ -159,6 +159,12 @@ package com.brockw.stickwar.campaign
       override public function leave() : void
       {
          removeEventListener(Event.ENTER_FRAME,this.update);
+         if(this.summaryMc != null)
+         {
+            this.summaryMc.share.removeEventListener(MouseEvent.CLICK,this.share);
+            this.summaryMc.playOnline.removeEventListener(MouseEvent.CLICK,this.playOnline);
+            this.summaryMc.mainMenu.removeEventListener(MouseEvent.CLICK,this.mainMenu);
+         }
       }
       
       private function update(e:Event) : void

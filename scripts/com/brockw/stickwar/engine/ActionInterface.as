@@ -6,6 +6,7 @@ package com.brockw.stickwar.engine
    import com.brockw.stickwar.engine.Team.TechItem;
    import com.brockw.stickwar.engine.units.Unit;
    import flash.display.*;
+   import flash.geom.Point;
    import flash.ui.Mouse;
    import flash.utils.Dictionary;
    
@@ -32,9 +33,11 @@ package com.brockw.stickwar.engine
       
       private var actions:Dictionary;
       
-      private var actionsToButtonMap:Dictionary;
-      
-      private var _currentMove:UnitCommand;
+       private var actionsToButtonMap:Dictionary;
+       
+       private var _techCancelButtons:Dictionary;
+       
+       private var _currentMove:UnitCommand;
       
       private var _currentEntity:Entity;
       
@@ -192,9 +195,10 @@ package com.brockw.stickwar.engine
          var j:int = 0;
          var v:Number = NaN;
          var action:int = 0;
-         var t:TechItem = null;
-         var c:UnitCommand = null;
-         var candidate:UnitCommand = null;
+          var t:TechItem = null;
+          var c:UnitCommand = null;
+          var candidate:UnitCommand = null;
+          var cancelTechBtn:cancelButton = null;
          for(i = 0; i < gameScreen.game.postCursors.length; i++)
          {
             m = gameScreen.game.postCursors[i];
@@ -332,27 +336,58 @@ package com.brockw.stickwar.engine
          {
             for(action = 0; action < this.currentActions.length; action++)
             {
-               if(this.currentActions[action] < 0)
-               {
-                  t = this.team.tech.upgrades[this.currentActions[action]];
-                  if(MovieClip(this.actionsToButtonMap[this.currentActions[action]]).hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,true))
-                  {
-                     gameScreen.game.team.updateButtonOver(gameScreen.game,t.name,t.tip,t.researchTime,t.cost,t.mana,0);
-                  }
-                  if(gameScreen.userInterface.keyBoardState.isDownForAction(t.hotKey) || gameScreen.userInterface.mouseState.clicked && MovieClip(this.actionsToButtonMap[this.currentActions[action]]).hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,false))
-                  {
-                     MovieClip(this.actionsToButtonMap[this.currentActions[action]]).alpha = 0.2;
-                     c = new TechCommand(gameScreen.game);
-                     c.goalX = this.currentActions[action];
-                     c.goalY = this.team.id;
-                     c.team = this.team;
-                     c.prepareNetworkedMove(gameScreen);
-                  }
-                  else
-                  {
-                     MovieClip(this.actionsToButtonMap[this.currentActions[action]]).alpha = 1;
-                  }
-               }
+                if(this.currentActions[action] < 0)
+                {
+                   t = this.team.tech.upgrades[this.currentActions[action]];
+                   if(MovieClip(this.actionsToButtonMap[this.currentActions[action]]).hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,true))
+                   {
+                      gameScreen.game.team.updateButtonOver(gameScreen.game,t.name,t.tip,t.researchTime,t.cost,t.mana,0);
+                   }
+                   if(gameScreen.userInterface.keyBoardState.isDownForAction(t.hotKey) || gameScreen.userInterface.mouseState.clicked && MovieClip(this.actionsToButtonMap[this.currentActions[action]]).hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,false))
+                   {
+                      MovieClip(this.actionsToButtonMap[this.currentActions[action]]).alpha = 0.2;
+                      c = new TechCommand(gameScreen.game);
+                      c.goalX = this.currentActions[action];
+                      c.goalY = this.team.id;
+                      c.team = this.team;
+                      c.prepareNetworkedMove(gameScreen);
+                   }
+                   else
+                   {
+                      MovieClip(this.actionsToButtonMap[this.currentActions[action]]).alpha = 1;
+                   }
+                   cancelTechBtn = this._techCancelButtons[this.currentActions[action]];
+                   if(this.team.tech.isResearching(this.currentActions[action]))
+                   {
+                      if(cancelTechBtn == null)
+                      {
+                         var globalOrigin:Point = this.actionsToButtonMap[this.currentActions[action]].localToGlobal(new Point(0, 0));
+                         var screenOrigin:Point = gameScreen.globalToLocal(globalOrigin);
+                         cancelTechBtn = new cancelButton();
+                         cancelTechBtn.x = screenOrigin.x + BOX_WIDTH / 2 - cancelTechBtn.width - 2;
+                         cancelTechBtn.y = screenOrigin.y - BOX_HEIGHT / 2;
+                         gameScreen.addChild(cancelTechBtn);
+                         this._techCancelButtons[this.currentActions[action]] = cancelTechBtn;
+                      }
+                      cancelTechBtn.visible = true;
+                      if(cancelTechBtn.hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,true))
+                      {
+                         gameScreen.game.team.updateButtonOver(gameScreen.game,"Cancel Research","Cancel this research and refund resources",0,0,0,0);
+                      }
+                      if(gameScreen.userInterface.mouseState.clicked && cancelTechBtn.hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,false))
+                      {
+                         var cancelTechCmd:TechCommand = new TechCommand(gameScreen.game);
+                         cancelTechCmd.goalX = -this.currentActions[action];
+                         cancelTechCmd.goalY = this.team.id;
+                         cancelTechCmd.team = this.team;
+                         cancelTechCmd.prepareNetworkedMove(gameScreen);
+                      }
+                   }
+                   else if(cancelTechBtn != null)
+                   {
+                      cancelTechBtn.visible = false;
+                   }
+                }
                else
                {
                   if(MovieClip(this.actionsToButtonMap[this.currentActions[action]]).hitTestPoint(gameScreen.stage.mouseX,gameScreen.stage.mouseY,false))
@@ -442,7 +477,17 @@ package com.brockw.stickwar.engine
          var x:int = 0;
          var s:Sprite = null;
          var c:DisplayObject = null;
-         for(var y:int = 0; y < COLS; y++)
+         var y:int = 0;
+         var btn:Object = null;
+         for each(btn in this._techCancelButtons)
+         {
+            if(btn is cancelButton && cancelButton(btn).parent != null)
+            {
+               cancelButton(btn).parent.removeChild(cancelButton(btn));
+            }
+         }
+         this._techCancelButtons = new Dictionary();
+         for(y = 0; y < COLS; y++)
          {
             for(x = 0; x < ROWS; x++)
             {
@@ -520,6 +565,7 @@ package com.brockw.stickwar.engine
       private function setUpActions() : void
       {
          this.actionsToButtonMap = new Dictionary();
+         this._techCancelButtons = new Dictionary();
          this.currentActions = [];
          this.actions = new Dictionary();
          this.actions[new AttackMoveCommand(this._game).type] = new AttackMoveCommand(this._game);

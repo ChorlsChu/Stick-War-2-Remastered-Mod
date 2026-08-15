@@ -197,6 +197,8 @@ package com.brockw.stickwar.campaign
          removeEventListener(MouseEvent.CLICK,this.click);
          this.mc.bottomPanel.campaignButtons.autoSaveEnabled.removeEventListener(MouseEvent.CLICK,this.disableSave);
          this.mc.bottomPanel.campaignButtons.autoSaveDisabled.removeEventListener(MouseEvent.CLICK,this.enableSave);
+         this.mc.bottomPanel.campaignButtons.playOnline.removeEventListener(MouseEvent.CLICK,this.playOnlineClick);
+         this.mc.bottomPanel.campaignButtons.strategyGuide.removeEventListener(MouseEvent.CLICK,this.strategyGuideClick);
          this.mc.saveGamePrompt.okButton.removeEventListener(MouseEvent.CLICK,this.okButton);
          this.scrollRect = null;
       }

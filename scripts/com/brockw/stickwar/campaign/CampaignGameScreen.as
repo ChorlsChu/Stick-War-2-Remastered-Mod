@@ -325,6 +325,8 @@ package com.brockw.stickwar.campaign
       override public function cleanUp() : void
       {
          trace("Do the cleanup");
+         this.enemyTeamAi = null;
+         this.controller = null;
          super.cleanUp();
       }
       

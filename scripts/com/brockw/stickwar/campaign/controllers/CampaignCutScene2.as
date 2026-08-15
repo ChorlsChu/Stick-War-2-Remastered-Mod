@@ -37,6 +37,8 @@ package com.brockw.stickwar.campaign.controllers
       
       private var spawnNumber:int;
       
+      private var hasIssuedBossAttack:Boolean;
+      
       public function CampaignCutScene2(gameScreen:GameScreen)
       {
          super(gameScreen);
@@ -45,6 +47,7 @@ package com.brockw.stickwar.campaign.controllers
          this.counter = 0;
          this.medusa = null;
          this.spawnNumber = 0;
+         this.hasIssuedBossAttack = false;
       }
       
       override public function update(gameScreen:GameScreen) : void
@@ -134,6 +137,7 @@ package com.brockw.stickwar.campaign.controllers
             if(freezePoint < gameScreen.team.homeX)
             {
                this.state = S_DONE;
+               this.activateBossAssault(gameScreen);
                spawn = [];
                spawn.push(Unit.U_MINER);
                spawn.push(Unit.U_MINER);
@@ -160,7 +164,6 @@ package com.brockw.stickwar.campaign.controllers
             }
             else
             {
-               gameScreen.game.team.enemyTeam.attack(true);
                if(gameScreen.game.frame % (30 * 10) == 0)
                {
                   numToSpawn = Math.min(this.spawnNumber / 2,4);
@@ -168,10 +171,10 @@ package com.brockw.stickwar.campaign.controllers
                   {
                      u1 = Bomber(gameScreen.game.unitFactory.getUnit(Unit.U_BOMBER));
                      gameScreen.team.enemyTeam.spawn(u1,gameScreen.game);
-                     u1.px = this.medusa.px + 100;
-                     u1.py = gameScreen.game.map.height / (numToSpawn * 2) + i / numToSpawn * gameScreen.game.map.height;
-                     u1.ai.setCommand(gameScreen.game,new StandCommand(gameScreen.game));
-                     gameScreen.team.enemyTeam.population += 1;
+                      u1.px = this.medusa.px + 100;
+                      u1.py = gameScreen.game.map.height / (numToSpawn * 2) + i / numToSpawn * gameScreen.game.map.height;
+                      this.makeIndependentAttacker(gameScreen,u1);
+                      gameScreen.team.enemyTeam.population += 1;
                      gameScreen.game.projectileManager.initTowerSpawn(this.medusa.px + 100,u1.py,gameScreen.game.team.enemyTeam,0.6);
                   }
                   ++this.spawnNumber;
@@ -194,6 +197,46 @@ package com.brockw.stickwar.campaign.controllers
          {
             u.stoneAttack(10000);
          }
+      }
+      
+      private function activateBossAssault(gameScreen:GameScreen) : void
+      {
+         var unit:Unit = null;
+         if(this.hasIssuedBossAttack)
+         {
+            return;
+         }
+         this.hasIssuedBossAttack = true;
+         for each(unit in gameScreen.team.enemyTeam.units)
+         {
+            if(unit != null && unit.isAlive() && !(unit is Statue) && unit.type != Unit.U_MINER && unit.type != Unit.U_CHAOS_MINER)
+            {
+               this.makeIndependentAttacker(gameScreen,unit);
+            }
+         }
+      }
+      
+      private function makeIndependentAttacker(gameScreen:GameScreen, unit:Unit) : void
+      {
+         if(unit == null || unit.ai == null)
+         {
+            return;
+         }
+         unit.isBossMovementLocked = true;
+         unit.ai.mayAttack = true;
+         unit.ai.mayMoveToAttack = true;
+         this.issueForwardAttackCommand(gameScreen,unit);
+      }
+      
+      private function issueForwardAttackCommand(gameScreen:GameScreen, unit:Unit) : void
+      {
+         var attackMoveCommand:AttackMoveCommand = new AttackMoveCommand(gameScreen.game);
+         attackMoveCommand.type = UnitCommand.ATTACK_MOVE;
+         attackMoveCommand.goalX = gameScreen.team.statue.px;
+         attackMoveCommand.goalY = gameScreen.game.map.height / 2;
+         attackMoveCommand.realX = gameScreen.team.statue.px;
+         attackMoveCommand.realY = attackMoveCommand.goalY;
+         unit.ai.setCommand(gameScreen.game,attackMoveCommand);
       }
    }
 }

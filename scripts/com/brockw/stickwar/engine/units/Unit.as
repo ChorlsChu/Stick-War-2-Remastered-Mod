@@ -268,6 +268,8 @@ package com.brockw.stickwar.engine.units
       
       private var _isTowerSpawned:Boolean;
       
+      private var _isBossMovementLocked:Boolean;
+      
       private var towerSpawnGlow:GlowFilter;
       
       private var lastHealthAnimation:int = 0;
@@ -286,6 +288,7 @@ package com.brockw.stickwar.engine.units
       {
          this.hasDefaultLoadout = false;
          this.isTowerSpawned = false;
+         this.isBossMovementLocked = false;
          this.healthBar = new HealthBar();
          this.reaperCurseFrames = 0;
          this.chaosPoisonedFrames = game.xml.xml.Chaos.poisonDuration;
@@ -1857,6 +1860,16 @@ package com.brockw.stickwar.engine.units
       public function set isTowerSpawned(value:Boolean) : void
       {
          this._isTowerSpawned = value;
+      }
+      
+      public function get isBossMovementLocked() : Boolean
+      {
+         return this._isBossMovementLocked;
+      }
+      
+      public function set isBossMovementLocked(value:Boolean) : void
+      {
+         this._isBossMovementLocked = value;
       }
       
       public function get arrowDeath() : Boolean

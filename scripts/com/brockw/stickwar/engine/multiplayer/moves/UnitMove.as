@@ -191,18 +191,22 @@ package com.brockw.stickwar.engine.multiplayer.moves
          var goalY:Number = NaN;
          var unit:String = null;
          var b:StickWar = StickWar(game);
-         if(this.moveType == UnitCommand.TECH)
-         {
-            t = StickWar(game).teamA;
-            if(t.id != this.arg1)
-            {
-               t = t.enemyTeam;
-            }
-            if(!t.tech.isResearching(this.arg0))
-            {
-               t.tech.startResearching(this.arg0);
-            }
-         }
+          if(this.moveType == UnitCommand.TECH)
+          {
+             t = StickWar(game).teamA;
+             if(t.id != this.arg1)
+             {
+                t = t.enemyTeam;
+             }
+             if(this.arg0 > 0)
+             {
+                t.tech.cancelResearch(-this.arg0);
+             }
+             else if(!t.tech.isResearching(this.arg0))
+             {
+                t.tech.startResearching(this.arg0);
+             }
+          }
          else if(this.moveType == UnitCommand.MOVE || this.moveType == UnitCommand.ATTACK_MOVE)
          {
             this.game = StickWar(game);
@@ -245,7 +249,7 @@ package com.brockw.stickwar.engine.multiplayer.moves
                      goalY = yMousePosition;
                   }
                   goalY = Math.min((height - actualHeight) / 2 + actualHeight,Math.max((height - actualHeight) / 2,goalY));
-                  if(!(b.units[this._units[i]] is Unit && Unit(b.units[this._units[i]]).isTowerSpawned))
+                  if(!(b.units[this._units[i]] is Unit && (Unit(b.units[this._units[i]]).isTowerSpawned || Unit(b.units[this._units[i]]).isBossMovementLocked)))
                   {
                      if(this.queued)
                      {
@@ -265,7 +269,7 @@ package com.brockw.stickwar.engine.multiplayer.moves
             {
                if(this._units[unit] in b.units)
                {
-                  if(!(b.units[this._units[unit]] is Unit && Unit(b.units[this._units[unit]]).isTowerSpawned))
+                  if(!(b.units[this._units[unit]] is Unit && (Unit(b.units[this._units[unit]]).isTowerSpawned || Unit(b.units[this._units[unit]]).isBossMovementLocked)))
                   {
                      if(this.queued)
                      {

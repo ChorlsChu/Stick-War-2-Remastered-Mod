@@ -124,13 +124,17 @@ package com.brockw.stickwar.engine.Team
       
       public static const TOWER_SPAWN_II:int = -61;
       
-      public var upgrades:Dictionary;
-      
-      protected var team:Team;
-      
-      protected var researchingMap:Object;
-      
-      protected var _isResearchedMap:Dictionary;
+       public var upgrades:Dictionary;
+       
+       public var researchGold:Dictionary;
+       
+       public var researchMana:Dictionary;
+       
+       protected var team:Team;
+       
+       protected var researchingMap:Object;
+       
+       protected var _isResearchedMap:Dictionary;
       
       private var isDebug:Boolean;
       
@@ -143,10 +147,12 @@ package com.brockw.stickwar.engine.Team
          super();
          this.game = game;
          this.team = team;
-         this.isResearchedMap = new Dictionary();
-         this.isDebug = game.xml.xml.debug == 1;
-         this.researchingMap = new Object();
-         this.toDecrement = [];
+          this.isResearchedMap = new Dictionary();
+          this.isDebug = game.xml.xml.debug == 1;
+          this.researchingMap = new Object();
+          this.researchGold = new Dictionary();
+          this.researchMana = new Dictionary();
+          this.toDecrement = [];
       }
       
       public function update(game:StickWar) : void
@@ -174,13 +180,15 @@ package com.brockw.stickwar.engine.Team
          this.toDecrement.splice(0,this.toDecrement.length);
       }
       
-      public function cleanUp() : void
-      {
-         this.upgrades = null;
-         this.team = null;
-         this.researchingMap = null;
-         this.isResearchedMap = null;
-      }
+       public function cleanUp() : void
+       {
+          this.upgrades = null;
+          this.team = null;
+          this.researchingMap = null;
+          this.researchGold = null;
+          this.researchMana = null;
+          this.isResearchedMap = null;
+       }
       
       public function isResearched(type:int) : Boolean
       {
@@ -217,13 +225,30 @@ package com.brockw.stickwar.engine.Team
          {
             return;
          }
-         if(t.cost <= this.team.gold && t.mana <= this.team.mana)
-         {
-            this.team.gold -= t.cost;
-            this.team.mana -= t.mana;
-            this.researchingMap[type] = t.researchTime;
-         }
-      }
+          if(t.cost <= this.team.gold && t.mana <= this.team.mana)
+          {
+             this.researchGold[type] = t.cost;
+             this.researchMana[type] = t.mana;
+             this.team.gold -= t.cost;
+             this.team.mana -= t.mana;
+             this.researchingMap[type] = t.researchTime;
+          }
+       }
+       
+       public function cancelResearch(type:int) : void
+       {
+          if(!(type in this.researchingMap))
+          {
+             return;
+          }
+          this.team.gold += this.researchGold[type];
+          this.team.mana += this.researchMana[type];
+          delete this.researchGold[type];
+          delete this.researchMana[type];
+          delete this.researchingMap[type];
+          this.game.gameScreen.userInterface.selectedUnits.refresh(true);
+          this.game.gameScreen.userInterface.actionInterface.refresh();
+       }
       
       public function get isResearchedMap() : Dictionary
       {

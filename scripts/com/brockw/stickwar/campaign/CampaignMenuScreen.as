@@ -552,7 +552,7 @@ package com.brockw.stickwar.campaign
          this.mc.introBrokenMc.removeEventListener(MouseEvent.CLICK,this.openIntroLink);
          if(this.hasInitStickpageLink)
          {
-            MovieClip(this.mc.stickpageLink).addEventListener(MouseEvent.CLICK,this.stickpageLink,false,0,true);
+            MovieClip(this.mc.stickpageLink).removeEventListener(MouseEvent.CLICK,this.stickpageLink);
          }
       }
       
