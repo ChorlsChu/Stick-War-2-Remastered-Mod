@@ -14,6 +14,8 @@ package com.brockw.stickwar.campaign
    public class CampaignUpgradeScreen extends Screen
    {
       
+      private static const DOUBLE_CLICK_TIME:Number = 500;
+      
       private var main:BaseMain;
       
       private var mc:campaignUpgradeScreenMc;
@@ -25,6 +27,10 @@ package com.brockw.stickwar.campaign
       private var team:Team;
       
       private var timeOfLastUpdate:int;
+      
+      private var lastClickKey:String;
+      
+      private var lastClickTimer:int;
       
       internal var good:Team;
       
@@ -78,6 +84,7 @@ package com.brockw.stickwar.campaign
          var t:TechItem = null;
          var canUpgrade:Boolean = false;
          var p:String = null;
+         var now:int = 0;
          if(this.mc.confirmTech.visible)
          {
             return;
@@ -121,13 +128,28 @@ package com.brockw.stickwar.campaign
             {
                canUpgrade = false;
             }
-            if(canUpgrade && MovieClip(this.buttonMap[key]).hitTestPoint(stage.mouseX,stage.mouseY,false) && this.clicked)
+            if(MovieClip(this.buttonMap[key]).hitTestPoint(stage.mouseX,stage.mouseY,false) && this.clicked)
             {
-               this.main.campaign.upgradeMap[key].upgraded = true;
-               c = CampaignUpgrade(this.main.campaign.upgradeMap[key]);
-               this.main.campaign.techAllowed[c.tech] = 1;
-               --this.main.campaign.campaignPoints;
-               this.main.soundManager.playSoundFullVolume("ArmoryEquipSound");
+               now = getTimer();
+               if(key == this.lastClickKey && now - this.lastClickTimer <= DOUBLE_CLICK_TIME)
+               {
+                  this.tryUndo(key);
+                  this.lastClickTimer = 0;
+                  this.lastClickKey = null;
+               }
+               else
+               {
+                  this.lastClickTimer = now;
+                  this.lastClickKey = key;
+                  if(canUpgrade)
+                  {
+                     this.main.campaign.upgradeMap[key].upgraded = true;
+                     c = CampaignUpgrade(this.main.campaign.upgradeMap[key]);
+                     this.main.campaign.techAllowed[c.tech] = 1;
+                     --this.main.campaign.campaignPoints;
+                     this.main.soundManager.playSoundFullVolume("ArmoryEquipSound");
+                  }
+               }
             }
          }
          this.clicked = false;
@@ -154,6 +176,31 @@ package com.brockw.stickwar.campaign
       private function click(evt:Event) : void
       {
          this.clicked = true;
+      }
+      
+      private function tryUndo(key:String) : Boolean
+      {
+         var c:CampaignUpgrade = null;
+         var childName:String = null;
+         var child:CampaignUpgrade = null;
+         c = CampaignUpgrade(this.main.campaign.upgradeMap[key]);
+         if(c == null || !c.upgraded)
+         {
+            return false;
+         }
+         for each(childName in c.children)
+         {
+            child = CampaignUpgrade(this.main.campaign.upgradeMap[childName]);
+            if(child != null && child.upgraded)
+            {
+               return false;
+            }
+         }
+         c.upgraded = false;
+         delete this.main.campaign.techAllowed[c.tech];
+         this.main.campaign.campaignPoints += 1;
+         this.main.soundManager.playSoundFullVolume("clickButton");
+         return true;
       }
       
       private function yesButton(evt:Event) : void
